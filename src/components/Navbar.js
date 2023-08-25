@@ -18,7 +18,7 @@ const Navbar = () => {
       <div className="">
         <div className="">
           <Link href="/">
-            <Image src={logo} className="w-20" alt="Mi Roca Logo" />
+            <Image src={logo} className="w-20" alt="Mi Roca Logo - La biblia" />
           </Link>
         </div>
       </div>
