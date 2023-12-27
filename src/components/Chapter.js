@@ -1,6 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import parse from "html-react-parser";
 
 export default function Chapter(props) {
   const [chapter, setChapter] = useState(null);
@@ -19,21 +20,20 @@ export default function Chapter(props) {
     return null;
   }
   return (
-    <div>
-      {chapter.map((e) => (
-        <div>
-          <span class="inline">{e.verse}</span>
-          <span class="inline">
-            {e.text.split("<br>").map((e) => (
-              <>
-                {e}
-                <br></br>
-              </>
-            ))}
+    <article className="px-[15em]">
+      {chapter.map((e, id) => (
+        <>
+          <span
+            className="inline leading-8 pl-6 font-extrabold text-cafe"
+            key={id}
+          >
+            <sup>{e.verse}</sup>
           </span>
-          <br></br>
-        </div>
+          <span className="inline text-xl leading-8 pl-1 font-light" key={id}>
+            {parse(e.text)}
+          </span>
+        </>
       ))}
-    </div>
+    </article>
   );
 }
