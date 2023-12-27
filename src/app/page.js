@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <>
       <Navbar />
-      <Chapter translation="NTV" bookNumber="1" chapterNumber="1" />
+      <Chapter translation="NTV" bookNumber="1" chapterNumber="2" />
     </>
   );
 }
