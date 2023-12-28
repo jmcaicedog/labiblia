@@ -7,7 +7,7 @@ const lightTheme = createTheme({ palette: { mode: "light" } });
 
 export default function Book(props) {
   return (
-    <ThemeProvider theme={props.theme ? props.theme : lightTheme}>
+    <ThemeProvider theme={props.theme ? props.theme : darkTheme}>
       <Box
         sx={{
           p: 2,
