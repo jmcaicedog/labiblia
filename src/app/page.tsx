@@ -16,6 +16,9 @@ export default function Home() {
           <p className="text-[var(--foreground-muted)]">
             Versión Católica en Español
           </p>
+          <p className="text-[var(--foreground-muted)]">
+            Emaús - Cristo Rey
+          </p>
         </div>
 
         {/* Testamentos */}

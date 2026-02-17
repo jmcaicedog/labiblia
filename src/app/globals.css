@@ -13,7 +13,7 @@
   --primary-800: #854d0e;
   --primary-900: #713f12;
   
-  /* Colores de fondo y texto */
+  /* Colores de fondo y texto - Modo claro por defecto */
   --background: #faf8f5;
   --background-card: #ffffff;
   --foreground: #1c1917;
@@ -39,8 +39,9 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Modo oscuro - preferencia del sistema */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --background: #1c1917;
     --background-card: #292524;
     --foreground: #fafaf9;
@@ -52,12 +53,37 @@
   }
 }
 
+/* Modo oscuro - forzado por clase */
+:root.dark {
+  --background: #1c1917;
+  --background-card: #292524;
+  --foreground: #fafaf9;
+  --foreground-muted: #a8a29e;
+  --border: #44403c;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --accent-old-light: #451a03;
+  --accent-new-light: #064e3b;
+}
+
+/* Modo claro - forzado por clase */
+:root.light {
+  --background: #faf8f5;
+  --background-card: #ffffff;
+  --foreground: #1c1917;
+  --foreground-muted: #57534e;
+  --accent-old-light: #fef3c7;
+  --accent-new-light: #d1fae5;
+  --border: #e7e5e4;
+  --shadow: rgba(0, 0, 0, 0.05);
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
 html {
   scroll-behavior: smooth;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {

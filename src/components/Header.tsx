@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import SearchBar from './SearchBar';
+import ThemeToggle from './ThemeToggle';
 
 interface HeaderProps {
   showSearch?: boolean;
@@ -42,10 +43,13 @@ export default function Header({ showSearch = true, title, backHref }: HeaderPro
           )}
           
           {showSearch && (
-            <div className="flex-1 flex justify-end">
+            <div className="flex-1 flex justify-end items-center gap-2">
               <SearchBar />
+              <ThemeToggle />
             </div>
           )}
+          
+          {!showSearch && <ThemeToggle />}
         </div>
       </div>
     </header>
