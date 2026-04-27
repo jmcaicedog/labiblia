@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { Book } from '@/data/bible';
+import VerseShareModal from './VerseShareModal';
 
 interface Verse {
   verse: number;
@@ -52,6 +53,8 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
   const [anchorVerse, setAnchorVerse] = useState<number | null>(null);
   const [selectedParam, setSelectedParam] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
   const copyStatusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const selectedRange = useMemo(() => parseVerseRange(selectedParam), [selectedParam]);
@@ -69,6 +72,11 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
 
     return () => window.removeEventListener('popstate', syncSelectionFromUrl);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setShareUrl(window.location.href);
+  }, [selectedParam, book.id, chapter]);
 
   useEffect(() => {
     return () => {
@@ -127,6 +135,12 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
   }, [selectedRange]);
 
   useEffect(() => {
+    if (!selectedRange) {
+      setIsShareModalOpen(false);
+    }
+  }, [selectedRange]);
+
+  useEffect(() => {
     if (!selectedRange || verses.length === 0) return;
 
     const selectedVerseElement = document.getElementById(`verse-${selectedRange.start}`);
@@ -179,8 +193,19 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
         ? `${selectedRange.start}`
         : `${selectedRange.start}-${selectedRange.end}`;
 
-    return `${book.name} ${chapter}:${verseRangeText}`;
+    return `${book.name} ${chapter},${verseRangeText}`;
   }, [book.name, chapter, selectedRange]);
+
+  const selectedQuoteText = useMemo(() => {
+    if (!selectedRange) return '';
+
+    return verses
+      .filter((verse) => verse.verse >= selectedRange.start && verse.verse <= selectedRange.end)
+      .map((verse) => verse.text.trim())
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }, [selectedRange, verses]);
 
   const handleCopyLink = async () => {
     if (!selectedRange || typeof window === 'undefined') return;
@@ -247,31 +272,64 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
 
       {selectedRange && (
         <div className="mb-4 p-3 rounded-xl border border-[var(--border)] bg-[var(--background)]
-                        flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
+                        flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between animate-fade-in
+                        sticky top-[calc(env(safe-area-inset-top)+5.25rem)] sm:top-[5.25rem] z-30
+                        backdrop-blur supports-[backdrop-filter]:bg-[var(--background)]/95">
+          <p className="text-xs text-[var(--foreground-muted)] sm:hidden">Acciones de cita</p>
           <p className="text-sm text-[var(--foreground)]">
             Selección: <span className="font-semibold">{selectedReference}</span>
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 sm:ml-auto">
             <button
               type="button"
-              onClick={handleClearSelection}
-              className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg
+              onClick={() => setIsShareModalOpen(true)}
+              aria-label="Compartir cita"
+              title="Compartir cita"
+              className="inline-flex items-center justify-center w-10 h-10 rounded-lg
                          border border-[var(--border)] bg-[var(--background-card)]
                          hover:bg-[var(--border)] transition-colors text-sm"
             >
-              Limpiar selección
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l5-5m0 0l5 5m-5-5v12M5 21h14" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={handleClearSelection}
+              aria-label="Limpiar selección"
+              title="Limpiar selección"
+              className="inline-flex items-center justify-center w-10 h-10 rounded-lg
+                         border border-[var(--border)] bg-[var(--background-card)]
+                         hover:bg-[var(--border)] transition-colors text-sm"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
             <button
               type="button"
               onClick={handleCopyLink}
-              className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg
+              aria-label={copyStatus === 'copied' ? 'Enlace copiado' : copyStatus === 'error' ? 'Error al copiar enlace' : 'Copiar enlace'}
+              title={copyStatus === 'copied' ? 'Enlace copiado' : copyStatus === 'error' ? 'Error al copiar enlace' : 'Copiar enlace'}
+              className={`inline-flex items-center justify-center w-10 h-10 rounded-lg
                          border border-[var(--border)] bg-[var(--background-card)]
-                         hover:bg-[var(--border)] transition-colors text-sm"
+                         hover:bg-[var(--border)] transition-colors text-sm
+                         ${copyStatus === 'copied' ? 'text-emerald-500' : ''}
+                         ${copyStatus === 'error' ? 'text-rose-500' : ''}`}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2M10 18h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              {copyStatus === 'copied' ? 'Enlace copiado' : copyStatus === 'error' ? 'No se pudo copiar' : 'Copiar enlace'}
+              {copyStatus === 'copied' ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : copyStatus === 'error' ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2M10 18h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              )}
             </button>
           </div>
         </div>
@@ -330,6 +388,14 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
           <div />
         )}
       </div>
+
+      <VerseShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        reference={selectedReference}
+        quoteText={selectedQuoteText}
+        shareUrl={shareUrl}
+      />
     </div>
   );
 }
