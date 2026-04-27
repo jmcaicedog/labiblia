@@ -193,8 +193,8 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
         ? `${selectedRange.start}`
         : `${selectedRange.start}-${selectedRange.end}`;
 
-    return `${book.name} ${chapter},${verseRangeText}`;
-  }, [book.name, chapter, selectedRange]);
+    return `${book.abbreviation} ${chapter},${verseRangeText}`;
+  }, [book.abbreviation, chapter, selectedRange]);
 
   const selectedQuoteText = useMemo(() => {
     if (!selectedRange) return '';
@@ -272,14 +272,15 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
 
       {selectedRange && (
         <div className="mb-4 p-3 rounded-xl border border-[var(--border)] bg-[var(--background)]
-                        flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between animate-fade-in
+                        flex flex-col gap-2 animate-fade-in
                         sticky top-[calc(env(safe-area-inset-top)+5.25rem)] sm:top-[5.25rem] z-30
                         backdrop-blur supports-[backdrop-filter]:bg-[var(--background)]/95">
-          <p className="text-xs text-[var(--foreground-muted)] sm:hidden">Acciones de cita</p>
-          <p className="text-sm text-[var(--foreground)]">
-            Selección: <span className="font-semibold">{selectedReference}</span>
-          </p>
-          <div className="flex items-center gap-2 sm:ml-auto">
+          <p className="text-xs text-[var(--foreground-muted)] sm:hidden">Compartir</p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-[var(--foreground)] font-semibold leading-tight">
+              {selectedReference}
+            </p>
+            <div className="flex items-center gap-2 ml-auto shrink-0">
             <button
               type="button"
               onClick={() => setIsShareModalOpen(true)}
@@ -331,6 +332,7 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
                 </svg>
               )}
             </button>
+            </div>
           </div>
         </div>
       )}
