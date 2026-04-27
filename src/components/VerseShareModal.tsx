@@ -230,10 +230,10 @@ export default function VerseShareModal({
           </button>
         </div>
 
-        <div className="p-4 overflow-y-auto max-h-[72vh]">
+        <div className="px-5 py-4 sm:px-6 overflow-y-auto max-h-[66vh] sm:max-h-[72vh]">
           <div
             ref={previewRef}
-            className="relative w-full aspect-[9/16] rounded-xl overflow-hidden border border-[var(--border)]"
+            className="relative mx-auto w-[calc(100%-1.5rem)] sm:w-[calc(100%-2rem)] aspect-[9/16] rounded-xl overflow-hidden border border-[var(--border)]"
             style={previewStyle}
           >
             <div className="absolute inset-0 px-6 text-center text-white" style={{ top: `${textPosition}%`, transform: 'translateY(-50%)' }}>
