@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { Book } from '@/data/bible';
 
@@ -14,11 +14,86 @@ interface VerseDisplayProps {
   chapter: number;
 }
 
+interface VerseRange {
+  start: number;
+  end: number;
+}
+
+function parseVerseRange(value: string | null): VerseRange | null {
+  if (!value) return null;
+
+  if (/^\d+$/.test(value)) {
+    const verse = Number(value);
+    return verse > 0 ? { start: verse, end: verse } : null;
+  }
+
+  const rangeMatch = value.match(/^(\d+)-(\d+)$/);
+  if (!rangeMatch) return null;
+
+  const start = Number(rangeMatch[1]);
+  const end = Number(rangeMatch[2]);
+
+  if (start <= 0 || end <= 0) return null;
+
+  return {
+    start: Math.min(start, end),
+    end: Math.max(start, end),
+  };
+}
+
+function formatVerseRange(range: VerseRange): string {
+  return range.start === range.end ? String(range.start) : `${range.start}-${range.end}`;
+}
+
 export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
   const [verses, setVerses] = useState<Verse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
+  const [anchorVerse, setAnchorVerse] = useState<number | null>(null);
+  const [selectedParam, setSelectedParam] = useState<string | null>(null);
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
+  const copyStatusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const selectedRange = useMemo(() => parseVerseRange(selectedParam), [selectedParam]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const syncSelectionFromUrl = () => {
+      const url = new URL(window.location.href);
+      setSelectedParam(url.searchParams.get('v'));
+    };
+
+    syncSelectionFromUrl();
+    window.addEventListener('popstate', syncSelectionFromUrl);
+
+    return () => window.removeEventListener('popstate', syncSelectionFromUrl);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (copyStatusTimeoutRef.current) {
+        clearTimeout(copyStatusTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const setSelectionInUrl = (range: VerseRange | null) => {
+    if (typeof window === 'undefined') return;
+
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+
+    if (range) {
+      params.set('v', formatVerseRange(range));
+    } else {
+      params.delete('v');
+    }
+
+    const nextUrl = `${url.pathname}${url.search}`;
+    window.history.replaceState(null, '', nextUrl);
+    setSelectedParam(params.get('v'));
+  };
 
   useEffect(() => {
     const fetchVerses = async () => {
@@ -46,6 +121,95 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
 
     fetchVerses();
   }, [book.id, chapter]);
+
+  useEffect(() => {
+    setAnchorVerse(selectedRange?.start ?? null);
+  }, [selectedRange]);
+
+  useEffect(() => {
+    if (!selectedRange || verses.length === 0) return;
+
+    const selectedVerseElement = document.getElementById(`verse-${selectedRange.start}`);
+    if (!selectedVerseElement) return;
+
+    selectedVerseElement.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [selectedRange, verses.length]);
+
+  const handleVerseClick = (verseNumber: number, isShiftPressed: boolean) => {
+    if (isShiftPressed && anchorVerse !== null) {
+      setSelectionInUrl({
+        start: Math.min(anchorVerse, verseNumber),
+        end: Math.max(anchorVerse, verseNumber),
+      });
+      return;
+    }
+
+    if (!selectedRange) {
+      setAnchorVerse(verseNumber);
+      setSelectionInUrl({ start: verseNumber, end: verseNumber });
+      return;
+    }
+
+    if (selectedRange.start === selectedRange.end) {
+      if (selectedRange.start === verseNumber) {
+        setAnchorVerse(null);
+        setSelectionInUrl(null);
+      } else {
+        setSelectionInUrl({
+          start: Math.min(selectedRange.start, verseNumber),
+          end: Math.max(selectedRange.end, verseNumber),
+        });
+      }
+      return;
+    }
+
+    setAnchorVerse(verseNumber);
+    setSelectionInUrl({ start: verseNumber, end: verseNumber });
+  };
+
+  const isVerseSelected = (verseNumber: number) => {
+    if (!selectedRange) return false;
+    return verseNumber >= selectedRange.start && verseNumber <= selectedRange.end;
+  };
+
+  const selectedReference = useMemo(() => {
+    if (!selectedRange) return '';
+    const verseRangeText =
+      selectedRange.start === selectedRange.end
+        ? `${selectedRange.start}`
+        : `${selectedRange.start}-${selectedRange.end}`;
+
+    return `${book.name} ${chapter}:${verseRangeText}`;
+  }, [book.name, chapter, selectedRange]);
+
+  const handleCopyLink = async () => {
+    if (!selectedRange || typeof window === 'undefined') return;
+
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopyStatus('copied');
+    } catch {
+      setCopyStatus('error');
+    }
+
+    if (copyStatusTimeoutRef.current) {
+      clearTimeout(copyStatusTimeoutRef.current);
+    }
+
+    copyStatusTimeoutRef.current = setTimeout(() => {
+      setCopyStatus('idle');
+    }, 1800);
+  };
+
+  const handleClearSelection = () => {
+    if (copyStatusTimeoutRef.current) {
+      clearTimeout(copyStatusTimeoutRef.current);
+    }
+
+    setCopyStatus('idle');
+    setAnchorVerse(null);
+    setSelectionInUrl(null);
+  };
 
   const isOld = book.testament === 'old';
   const accentText = isOld ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
@@ -80,13 +244,46 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
           </p>
         </div>
       )}
+
+      {selectedRange && (
+        <div className="mb-4 p-3 rounded-xl border border-[var(--border)] bg-[var(--background)]
+                        flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
+          <p className="text-sm text-[var(--foreground)]">
+            Selección: <span className="font-semibold">{selectedReference}</span>
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleClearSelection}
+              className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg
+                         border border-[var(--border)] bg-[var(--background-card)]
+                         hover:bg-[var(--border)] transition-colors text-sm"
+            >
+              Limpiar selección
+            </button>
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg
+                         border border-[var(--border)] bg-[var(--background-card)]
+                         hover:bg-[var(--border)] transition-colors text-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2M10 18h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              {copyStatus === 'copied' ? 'Enlace copiado' : copyStatus === 'error' ? 'No se pudo copiar' : 'Copiar enlace'}
+            </button>
+          </div>
+        </div>
+      )}
       
       {verses.map((verse, index) => (
         <p
+          id={`verse-${verse.verse}`}
           key={verse.verse}
-          onClick={() => setSelectedVerse(selectedVerse === verse.verse ? null : verse.verse)}
+          onClick={(event) => handleVerseClick(verse.verse, event.shiftKey)}
           className={`py-2 px-3 rounded-lg cursor-pointer transition-all duration-200
-                     ${selectedVerse === verse.verse 
+                     ${isVerseSelected(verse.verse)
                        ? 'bg-[var(--primary-100)] dark:bg-[var(--primary-900)]' 
                        : 'hover:bg-[var(--border)]'}
                      animate-fade-in`}
