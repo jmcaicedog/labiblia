@@ -298,28 +298,59 @@ export default function VerseShareModal({
           </div>
         </div>
 
-        <div className="p-4 border-t border-[var(--border)] grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <button
-            type="button"
-            onClick={handleNativeShare}
-            className="px-3 py-2 rounded-lg bg-[var(--primary-500)] text-white hover:opacity-90 transition"
-          >
-            Compartir (Instagram/WhatsApp)
-          </button>
-          <button
-            type="button"
-            onClick={handleWhatsApp}
-            className="px-3 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)] transition"
-          >
-            WhatsApp (texto + enlace)
-          </button>
-          <button
-            type="button"
-            onClick={handleDownload}
-            className="px-3 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--border)] transition"
-          >
-            Descargar imagen
-          </button>
+        <div className="p-4 border-t border-[var(--border)]">
+          <div className="flex items-center justify-center gap-3">
+            <div className="relative group">
+              <button
+                type="button"
+                onClick={handleNativeShare}
+                aria-label="Compartir (Instagram/WhatsApp)"
+                title="Compartir (Instagram/WhatsApp)"
+                className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-[var(--primary-500)] text-white hover:opacity-90 transition"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l5-5m0 0l5 5m-5-5v12M5 21h14" />
+                </svg>
+              </button>
+              <span className="hidden sm:block pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/80 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                Compartir
+              </span>
+            </div>
+
+            <div className="relative group">
+              <button
+                type="button"
+                onClick={handleWhatsApp}
+                aria-label="WhatsApp (texto + enlace)"
+                title="WhatsApp (texto + enlace)"
+                className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-[var(--border)] hover:bg-[var(--border)] transition"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01M7 18l-3 2 1.2-3.6A8 8 0 1119 6a8 8 0 01-12 12z" />
+                </svg>
+              </button>
+              <span className="hidden sm:block pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/80 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                WhatsApp
+              </span>
+            </div>
+
+            <div className="relative group">
+              <button
+                type="button"
+                onClick={handleDownload}
+                aria-label="Descargar imagen"
+                title="Descargar imagen"
+                className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-[var(--border)] hover:bg-[var(--border)] transition"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" />
+                </svg>
+              </button>
+              <span className="hidden sm:block pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/80 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                Descargar
+              </span>
+            </div>
+          </div>
         </div>
 
         {status !== 'idle' && (
