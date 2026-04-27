@@ -230,7 +230,7 @@ export default function VerseShareModal({
           </button>
         </div>
 
-        <div className="p-4 space-y-4 overflow-y-auto max-h-[72vh]">
+        <div className="p-4 overflow-y-auto max-h-[72vh]">
           <div
             ref={previewRef}
             className="relative w-full aspect-[9/16] rounded-xl overflow-hidden border border-[var(--border)]"
@@ -242,46 +242,59 @@ export default function VerseShareModal({
               </p>
               <p className="mt-3 text-sm font-medium opacity-95">{reference}</p>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Fondo</label>
-            <div className="grid grid-cols-5 gap-2">
-              {SHARE_BACKGROUNDS.map((bg) => (
-                <button
-                  key={bg}
-                  type="button"
-                  onClick={() => setSelectedBackground(bg)}
-                  className={`relative aspect-[9/16] rounded-md border overflow-hidden ${selectedBackground === bg ? 'border-[var(--primary-500)] ring-2 ring-[var(--primary-300)]' : 'border-[var(--border)]'}`}
-                >
-                  <NextImage src={bg} alt="Fondo para cita" fill className="object-cover" sizes="80px" />
-                </button>
-              ))}
+            <div className="absolute inset-x-3 bottom-3 z-20 rounded-xl border border-white/20 bg-black/45 p-3 text-white shadow-lg backdrop-blur-md">
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-white/85">Fondo</p>
+                  <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+                    {SHARE_BACKGROUNDS.map((bg) => (
+                      <button
+                        key={bg}
+                        type="button"
+                        onClick={() => setSelectedBackground(bg)}
+                        className={`relative h-16 w-10 shrink-0 rounded-md border overflow-hidden ${selectedBackground === bg ? 'border-white ring-2 ring-white/60' : 'border-white/30'}`}
+                        aria-label="Seleccionar fondo"
+                      >
+                        <NextImage src={bg} alt="Fondo para cita" fill className="object-cover" sizes="40px" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <div className="flex items-center justify-between text-[11px] font-medium text-white/85">
+                      <span>Posición</span>
+                      <span>{textPosition}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={30}
+                      max={72}
+                      value={textPosition}
+                      onChange={(e) => setTextPosition(Number(e.target.value))}
+                      className="w-full accent-white"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between text-[11px] font-medium text-white/85">
+                      <span>Tamaño</span>
+                      <span>{fontScale}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={42}
+                      max={66}
+                      value={fontScale}
+                      onChange={(e) => setFontScale(Number(e.target.value))}
+                      className="w-full accent-white"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Posición del texto</label>
-            <input
-              type="range"
-              min={30}
-              max={72}
-              value={textPosition}
-              onChange={(e) => setTextPosition(Number(e.target.value))}
-              className="w-full"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Tamaño del texto</label>
-            <input
-              type="range"
-              min={42}
-              max={66}
-              value={fontScale}
-              onChange={(e) => setFontScale(Number(e.target.value))}
-              className="w-full"
-            />
           </div>
         </div>
 
