@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { searchBooks, Book } from '@/data/bible';
 
@@ -11,23 +11,18 @@ interface SearchResult {
 
 export default function SearchBar() {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    if (query.trim().length > 0) {
-      const books = searchBooks(query);
-      setResults(books.slice(0, 8).map(book => ({ type: 'book', book })));
-      setIsOpen(true);
-      setSelectedIndex(-1);
-    } else {
-      setResults([]);
-      setIsOpen(false);
-    }
+  const results = useMemo<SearchResult[]>(() => {
+    const trimmedQuery = query.trim();
+    if (trimmedQuery.length === 0) return [];
+
+    const books = searchBooks(trimmedQuery);
+    return books.slice(0, 8).map((book) => ({ type: 'book', book }));
   }, [query]);
 
   useEffect(() => {
@@ -72,6 +67,7 @@ export default function SearchBar() {
     router.push(`/libro/${result.book.id}`);
     setQuery('');
     setIsOpen(false);
+    setSelectedIndex(-1);
   };
 
   return (
@@ -94,7 +90,12 @@ export default function SearchBar() {
           ref={inputRef}
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            const nextQuery = e.target.value;
+            setQuery(nextQuery);
+            setSelectedIndex(-1);
+            setIsOpen(nextQuery.trim().length > 0);
+          }}
           onKeyDown={handleKeyDown}
           onFocus={() => query.trim() && setIsOpen(true)}
           placeholder="Buscar libro..."

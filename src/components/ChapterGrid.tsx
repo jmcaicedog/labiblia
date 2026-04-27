@@ -9,7 +9,6 @@ interface ChapterGridProps {
 
 export default function ChapterGrid({ book }: ChapterGridProps) {
   const isOld = book.testament === 'old';
-  const accentBg = isOld ? 'bg-amber-500' : 'bg-emerald-500';
   const hoverBg = isOld ? 'hover:bg-amber-50 dark:hover:bg-amber-950' : 'hover:bg-emerald-50 dark:hover:bg-emerald-950';
   const hoverText = isOld ? 'hover:text-amber-700 dark:hover:text-amber-400' : 'hover:text-emerald-700 dark:hover:text-emerald-400';
 
