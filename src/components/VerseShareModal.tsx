@@ -136,10 +136,6 @@ export default function VerseShareModal({
     ctx.fillStyle = '#f7f7f7';
     ctx.fillText(reference, width / 2, height - 190, width - 180);
 
-    ctx.font = '500 30px system-ui, -apple-system, sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.fillText('labiblia.app', width / 2, height - 120, width - 180);
-
     return new Promise((resolve, reject) => {
       canvas.toBlob(
         (blob) => {
