@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Book } from '@/data/bible';
+import { Book, getChapterList } from '@/data/bible';
 
 interface ChapterGridProps {
   book: Book;
@@ -12,7 +12,7 @@ export default function ChapterGrid({ book }: ChapterGridProps) {
   const hoverBg = isOld ? 'hover:bg-amber-50 dark:hover:bg-amber-950' : 'hover:bg-emerald-50 dark:hover:bg-emerald-950';
   const hoverText = isOld ? 'hover:text-amber-700 dark:hover:text-amber-400' : 'hover:text-emerald-700 dark:hover:text-emerald-400';
 
-  const chapters = Array.from({ length: book.chapters }, (_, i) => i + 1);
+  const chapters = getChapterList(book);
 
   return (
     <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
@@ -27,7 +27,7 @@ export default function ChapterGrid({ book }: ChapterGridProps) {
                      animate-fade-in`}
           style={{ animationDelay: `${Math.min(index * 15, 500)}ms` }}
         >
-          {chapter}
+          {chapter === 0 ? 'Prol.' : chapter}
         </Link>
       ))}
     </div>

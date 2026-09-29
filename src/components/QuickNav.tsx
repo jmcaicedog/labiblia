@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Book } from '@/data/bible';
+import { Book, getChapterList } from '@/data/bible';
 
 interface QuickNavProps {
   book: Book;
@@ -12,7 +12,7 @@ interface QuickNavProps {
 export default function QuickNav({ book, currentChapter }: QuickNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   
-  const chapters = Array.from({ length: book.chapters }, (_, i) => i + 1);
+  const chapters = getChapterList(book);
   const isOld = book.testament === 'old';
   const accentBg = isOld ? 'bg-amber-500' : 'bg-emerald-500';
   const accentBgLight = isOld ? 'bg-amber-100 dark:bg-amber-900' : 'bg-emerald-100 dark:bg-emerald-900';
@@ -80,7 +80,7 @@ export default function QuickNav({ book, currentChapter }: QuickNavProps) {
                                  ? `${accentBg} text-white shadow-md` 
                                  : `${accentBgLight} ${accentText} hover:scale-105`}`}
                   >
-                    {chapter}
+                    {chapter === 0 ? 'Prol.' : chapter}
                   </Link>
                 ))}
               </div>

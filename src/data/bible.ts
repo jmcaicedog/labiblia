@@ -1,9 +1,12 @@
 // Estructura de la Biblia Católica en español
+// El `id` de cada libro coincide con el `slug` que expone la API (https://apibiblia.vercel.app)
 export interface Book {
   id: string;
   name: string;
   abbreviation: string;
   chapters: number;
+  /** Primer número de capítulo válido. Por defecto 1; en Eclesiástico es 0 (prólogo del traductor). */
+  startChapter?: number;
   testament: 'old' | 'new';
   category: string;
 }
@@ -27,28 +30,28 @@ const oldTestamentBooks: Book[] = [
   { id: 'josue', name: 'Josué', abbreviation: 'Jos', chapters: 24, testament: 'old', category: 'Históricos' },
   { id: 'jueces', name: 'Jueces', abbreviation: 'Jc', chapters: 21, testament: 'old', category: 'Históricos' },
   { id: 'rut', name: 'Rut', abbreviation: 'Rt', chapters: 4, testament: 'old', category: 'Históricos' },
-  { id: '1samuel', name: '1 Samuel', abbreviation: '1Sm', chapters: 31, testament: 'old', category: 'Históricos' },
-  { id: '2samuel', name: '2 Samuel', abbreviation: '2Sm', chapters: 24, testament: 'old', category: 'Históricos' },
-  { id: '1reyes', name: '1 Reyes', abbreviation: '1Re', chapters: 22, testament: 'old', category: 'Históricos' },
-  { id: '2reyes', name: '2 Reyes', abbreviation: '2Re', chapters: 25, testament: 'old', category: 'Históricos' },
-  { id: '1cronicas', name: '1 Crónicas', abbreviation: '1Cr', chapters: 29, testament: 'old', category: 'Históricos' },
-  { id: '2cronicas', name: '2 Crónicas', abbreviation: '2Cr', chapters: 36, testament: 'old', category: 'Históricos' },
+  { id: '1-samuel', name: '1 Samuel', abbreviation: '1Sm', chapters: 31, testament: 'old', category: 'Históricos' },
+  { id: '2-samuel', name: '2 Samuel', abbreviation: '2Sm', chapters: 24, testament: 'old', category: 'Históricos' },
+  { id: '1-reyes', name: '1 Reyes', abbreviation: '1Re', chapters: 22, testament: 'old', category: 'Históricos' },
+  { id: '2-reyes', name: '2 Reyes', abbreviation: '2Re', chapters: 25, testament: 'old', category: 'Históricos' },
+  { id: '1-cronicas', name: '1 Crónicas', abbreviation: '1Cr', chapters: 29, testament: 'old', category: 'Históricos' },
+  { id: '2-cronicas', name: '2 Crónicas', abbreviation: '2Cr', chapters: 36, testament: 'old', category: 'Históricos' },
   { id: 'esdras', name: 'Esdras', abbreviation: 'Esd', chapters: 10, testament: 'old', category: 'Históricos' },
   { id: 'nehemias', name: 'Nehemías', abbreviation: 'Ne', chapters: 13, testament: 'old', category: 'Históricos' },
   { id: 'tobias', name: 'Tobías', abbreviation: 'Tb', chapters: 14, testament: 'old', category: 'Históricos' },
   { id: 'judit', name: 'Judit', abbreviation: 'Jdt', chapters: 16, testament: 'old', category: 'Históricos' },
-  { id: 'ester', name: 'Ester', abbreviation: 'Est', chapters: 10, testament: 'old', category: 'Históricos' },
-  { id: '1macabeos', name: '1 Macabeos', abbreviation: '1Mac', chapters: 16, testament: 'old', category: 'Históricos' },
-  { id: '2macabeos', name: '2 Macabeos', abbreviation: '2Mac', chapters: 15, testament: 'old', category: 'Históricos' },
+  { id: 'ester', name: 'Ester', abbreviation: 'Est', chapters: 16, testament: 'old', category: 'Históricos' },
+  { id: '1-macabeos', name: '1 Macabeos', abbreviation: '1Mac', chapters: 16, testament: 'old', category: 'Históricos' },
+  { id: '2-macabeos', name: '2 Macabeos', abbreviation: '2Mac', chapters: 15, testament: 'old', category: 'Históricos' },
   
   // Poéticos y Sapienciales
   { id: 'job', name: 'Job', abbreviation: 'Jb', chapters: 42, testament: 'old', category: 'Sapienciales' },
   { id: 'salmos', name: 'Salmos', abbreviation: 'Sal', chapters: 150, testament: 'old', category: 'Sapienciales' },
   { id: 'proverbios', name: 'Proverbios', abbreviation: 'Pr', chapters: 31, testament: 'old', category: 'Sapienciales' },
   { id: 'eclesiastes', name: 'Eclesiastés', abbreviation: 'Ecl', chapters: 12, testament: 'old', category: 'Sapienciales' },
-  { id: 'cantar', name: 'Cantar de los Cantares', abbreviation: 'Ct', chapters: 8, testament: 'old', category: 'Sapienciales' },
+  { id: 'cantar-de-los-cantares', name: 'Cantar de los Cantares', abbreviation: 'Ct', chapters: 8, testament: 'old', category: 'Sapienciales' },
   { id: 'sabiduria', name: 'Sabiduría', abbreviation: 'Sb', chapters: 19, testament: 'old', category: 'Sapienciales' },
-  { id: 'eclesiastico', name: 'Eclesiástico', abbreviation: 'Eclo', chapters: 51, testament: 'old', category: 'Sapienciales' },
+  { id: 'eclesiastico', name: 'Eclesiástico', abbreviation: 'Eclo', chapters: 52, startChapter: 0, testament: 'old', category: 'Sapienciales' },
   
   // Profetas Mayores
   { id: 'isaias', name: 'Isaías', abbreviation: 'Is', chapters: 66, testament: 'old', category: 'Profetas Mayores' },
@@ -82,20 +85,20 @@ const newTestamentBooks: Book[] = [
   { id: 'juan', name: 'Juan', abbreviation: 'Jn', chapters: 21, testament: 'new', category: 'Evangelios' },
   
   // Histórico
-  { id: 'hechos', name: 'Hechos de los Apóstoles', abbreviation: 'Hch', chapters: 28, testament: 'new', category: 'Histórico' },
+  { id: 'hechos-de-los-apostoles', name: 'Hechos de los Apóstoles', abbreviation: 'Hch', chapters: 28, testament: 'new', category: 'Histórico' },
   
   // Cartas Paulinas
   { id: 'romanos', name: 'Romanos', abbreviation: 'Rm', chapters: 16, testament: 'new', category: 'Cartas Paulinas' },
-  { id: '1corintios', name: '1 Corintios', abbreviation: '1Co', chapters: 16, testament: 'new', category: 'Cartas Paulinas' },
-  { id: '2corintios', name: '2 Corintios', abbreviation: '2Co', chapters: 13, testament: 'new', category: 'Cartas Paulinas' },
+  { id: '1-corintios', name: '1 Corintios', abbreviation: '1Co', chapters: 16, testament: 'new', category: 'Cartas Paulinas' },
+  { id: '2-corintios', name: '2 Corintios', abbreviation: '2Co', chapters: 13, testament: 'new', category: 'Cartas Paulinas' },
   { id: 'galatas', name: 'Gálatas', abbreviation: 'Ga', chapters: 6, testament: 'new', category: 'Cartas Paulinas' },
   { id: 'efesios', name: 'Efesios', abbreviation: 'Ef', chapters: 6, testament: 'new', category: 'Cartas Paulinas' },
   { id: 'filipenses', name: 'Filipenses', abbreviation: 'Flp', chapters: 4, testament: 'new', category: 'Cartas Paulinas' },
   { id: 'colosenses', name: 'Colosenses', abbreviation: 'Col', chapters: 4, testament: 'new', category: 'Cartas Paulinas' },
-  { id: '1tesalonicenses', name: '1 Tesalonicenses', abbreviation: '1Ts', chapters: 5, testament: 'new', category: 'Cartas Paulinas' },
-  { id: '2tesalonicenses', name: '2 Tesalonicenses', abbreviation: '2Ts', chapters: 3, testament: 'new', category: 'Cartas Paulinas' },
-  { id: '1timoteo', name: '1 Timoteo', abbreviation: '1Tm', chapters: 6, testament: 'new', category: 'Cartas Paulinas' },
-  { id: '2timoteo', name: '2 Timoteo', abbreviation: '2Tm', chapters: 4, testament: 'new', category: 'Cartas Paulinas' },
+  { id: '1-tesalonicenses', name: '1 Tesalonicenses', abbreviation: '1Ts', chapters: 5, testament: 'new', category: 'Cartas Paulinas' },
+  { id: '2-tesalonicenses', name: '2 Tesalonicenses', abbreviation: '2Ts', chapters: 3, testament: 'new', category: 'Cartas Paulinas' },
+  { id: '1-timoteo', name: '1 Timoteo', abbreviation: '1Tm', chapters: 6, testament: 'new', category: 'Cartas Paulinas' },
+  { id: '2-timoteo', name: '2 Timoteo', abbreviation: '2Tm', chapters: 4, testament: 'new', category: 'Cartas Paulinas' },
   { id: 'tito', name: 'Tito', abbreviation: 'Tt', chapters: 3, testament: 'new', category: 'Cartas Paulinas' },
   { id: 'filemon', name: 'Filemón', abbreviation: 'Flm', chapters: 1, testament: 'new', category: 'Cartas Paulinas' },
   
@@ -104,11 +107,11 @@ const newTestamentBooks: Book[] = [
   
   // Cartas Católicas
   { id: 'santiago', name: 'Santiago', abbreviation: 'St', chapters: 5, testament: 'new', category: 'Cartas Católicas' },
-  { id: '1pedro', name: '1 Pedro', abbreviation: '1Pe', chapters: 5, testament: 'new', category: 'Cartas Católicas' },
-  { id: '2pedro', name: '2 Pedro', abbreviation: '2Pe', chapters: 3, testament: 'new', category: 'Cartas Católicas' },
-  { id: '1juan', name: '1 Juan', abbreviation: '1Jn', chapters: 5, testament: 'new', category: 'Cartas Católicas' },
-  { id: '2juan', name: '2 Juan', abbreviation: '2Jn', chapters: 1, testament: 'new', category: 'Cartas Católicas' },
-  { id: '3juan', name: '3 Juan', abbreviation: '3Jn', chapters: 1, testament: 'new', category: 'Cartas Católicas' },
+  { id: '1-pedro', name: '1 Pedro', abbreviation: '1Pe', chapters: 5, testament: 'new', category: 'Cartas Católicas' },
+  { id: '2-pedro', name: '2 Pedro', abbreviation: '2Pe', chapters: 3, testament: 'new', category: 'Cartas Católicas' },
+  { id: '1-juan', name: '1 Juan', abbreviation: '1Jn', chapters: 5, testament: 'new', category: 'Cartas Católicas' },
+  { id: '2-juan', name: '2 Juan', abbreviation: '2Jn', chapters: 1, testament: 'new', category: 'Cartas Católicas' },
+  { id: '3-juan', name: '3 Juan', abbreviation: '3Jn', chapters: 1, testament: 'new', category: 'Cartas Católicas' },
   { id: 'judas', name: 'Judas', abbreviation: 'Jds', chapters: 1, testament: 'new', category: 'Cartas Católicas' },
   
   // Profético
@@ -132,6 +135,17 @@ export const allBooks = [...oldTestamentBooks, ...newTestamentBooks];
 
 export function getBookById(id: string): Book | undefined {
   return allBooks.find(book => book.id === id);
+}
+
+// Rango de capítulos válido para un libro (contempla el prólogo cap. 0 de Eclesiástico)
+export function getChapterRange(book: Book): { first: number; last: number } {
+  const first = book.startChapter ?? 1;
+  return { first, last: first + book.chapters - 1 };
+}
+
+export function getChapterList(book: Book): number[] {
+  const { first, last } = getChapterRange(book);
+  return Array.from({ length: last - first + 1 }, (_, i) => first + i);
 }
 
 export function getBooksByTestament(testament: 'old' | 'new'): Book[] {

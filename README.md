@@ -33,33 +33,24 @@ npm run build
 npm start
 ```
 
-## Conectar tu API
+## API de la Biblia
 
-La aplicación está preparada para conectarse con tu API de la Biblia. Configura la URL en el archivo `.env.local`:
+La aplicación consume [API Biblia Católica](https://apibiblia.vercel.app/) (Biblia de Jerusalén, canon católico de 73 libros, sobre MongoDB). La URL base se configura en `.env.local`:
 
 ```env
-NEXT_PUBLIC_BIBLE_API_URL=https://tu-api-de-la-biblia.com/api
+NEXT_PUBLIC_BIBLE_API_URL=https://apibiblia.vercel.app
 ```
 
-### Formato esperado de la API
+El cliente (`src/lib/bibleApi.ts`) consume los endpoints REST `v1` de esa API:
 
-El endpoint debe responder en el formato:
+- `GET /api/v1/books` — catálogo de los 73 libros
+- `GET /api/v1/books/{book}/chapters` — capítulos de un libro
+- `GET /api/v1/books/{book}/chapters/{chapter}` — capítulo completo con versículos
+- `GET /api/v1/books/{book}/chapters/{chapter}/verses/{verse}` — versículo o rango
+- `GET /api/v1/search` — búsqueda de texto completo
+- `GET /api/v1/random`, `/api/v1/verse-of-the-day`, `/api/v1/stats`
 
-```
-GET /api/bible/{bookId}/{chapter}
-```
-
-Respuesta esperada:
-```json
-{
-  "book": "Génesis",
-  "chapter": 1,
-  "verses": [
-    { "verse": 1, "text": "En el principio creó Dios los cielos y la tierra." },
-    { "verse": 2, "text": "..." }
-  ]
-}
-```
+El componente `VerseDisplay` obtiene los versículos a través de la ruta interna `GET /api/proxy/{bookId}/{chapter}` (evita CORS y normaliza la respuesta), que a su vez llama a `getChapter()` en `bibleApi.ts`. El `bookId` usado en las rutas de la app coincide con el `slug` de la API (p. ej. `1-samuel`, `cantar-de-los-cantares`, `hechos-de-los-apostoles`).
 
 ## Desplegar en Vercel
 
@@ -83,7 +74,7 @@ src/
 │   │       └── [chapter]/
 │   │           └── page.tsx  # Página de capítulo
 │   └── api/
-│       └── bible/            # API de ejemplo
+│       └── proxy/            # Proxy interno hacia la API de la Biblia
 ├── components/
 │   ├── Header.tsx            # Cabecera con navegación
 │   ├── SearchBar.tsx         # Buscador
@@ -92,8 +83,9 @@ src/
 │   ├── VerseDisplay.tsx      # Visualización de versículos
 │   └── QuickNav.tsx          # Navegación rápida flotante
 ├── data/
-│   └── bible.ts              # Datos de libros de la Biblia
+│   └── bible.ts              # Catálogo local de libros (slugs, capítulos)
 └── lib/
+    ├── bibleApi.ts           # Cliente de la API Biblia Católica
     └── config.ts             # Configuración de la app
 ```
 

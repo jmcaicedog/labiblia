@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import Header from '@/components/Header';
 import VerseDisplay from '@/components/VerseDisplay';
 import QuickNav from '@/components/QuickNav';
-import { getBookById, allBooks } from '@/data/bible';
+import { getBookById, allBooks, getChapterRange } from '@/data/bible';
 
 interface ChapterPageProps {
   params: Promise<{
@@ -15,7 +15,8 @@ export async function generateStaticParams() {
   const paths: { bookId: string; chapter: string }[] = [];
   
   allBooks.forEach(book => {
-    for (let i = 1; i <= book.chapters; i++) {
+    const { first, last } = getChapterRange(book);
+    for (let i = first; i <= last; i++) {
       paths.push({
         bookId: book.id,
         chapter: i.toString(),
@@ -31,7 +32,15 @@ export async function generateMetadata({ params }: ChapterPageProps) {
   const book = getBookById(bookId);
   const chapterNum = parseInt(chapter, 10);
   
-  if (!book || isNaN(chapterNum) || chapterNum < 1 || chapterNum > book.chapters) {
+  if (!book) {
+    return {
+      title: 'Capítulo no encontrado',
+    };
+  }
+
+  const { first, last } = getChapterRange(book);
+
+  if (isNaN(chapterNum) || chapterNum < first || chapterNum > last) {
     return {
       title: 'Capítulo no encontrado',
     };
@@ -48,7 +57,13 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
   const book = getBookById(bookId);
   const chapterNum = parseInt(chapter, 10);
 
-  if (!book || isNaN(chapterNum) || chapterNum < 1 || chapterNum > book.chapters) {
+  if (!book) {
+    notFound();
+  }
+
+  const { first, last } = getChapterRange(book);
+
+  if (isNaN(chapterNum) || chapterNum < first || chapterNum > last) {
     notFound();
   }
 

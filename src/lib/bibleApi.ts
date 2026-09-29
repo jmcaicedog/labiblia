@@ -1,175 +1,194 @@
-// Servicio para conectar con la API de la Biblia Católica
-// API: https://apibiblia.vercel.app/
+// Cliente de la API Biblia Católica (v2, MongoDB)
+// Documentación: https://apibiblia.vercel.app/
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BIBLE_API_URL || '';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_BIBLE_API_URL || 'https://apibiblia.vercel.app').replace(/\/+$/, '');
 
-export interface ApiVerse {
-  id?: number;
-  numero?: number;
-  verse?: number;
-  texto?: string;
-  text?: string;
-}
-
-export interface ApiChapter {
-  id: number;
-  numero: number;
-  libro_id?: number;
-}
+export type Testament = 'AT' | 'NT';
 
 export interface ApiBook {
-  id: number;
-  nombre: string;
-  abreviatura: string;
-  capitulos?: number;
-  testamento?: string;
+  slug: string;
+  name: string;
+  abbrev: string;
+  testament: Testament;
+  order: number;
+  deuterocanonical: boolean;
+  deuterocanonicalAdditions: boolean;
+  chapterCount: number;
+  firstChapter: number;
+  lastChapter: number;
+  verseCount: number;
+  sourceUrl: string | null;
 }
 
-// Obtener todos los libros
-export async function getBooks(): Promise<ApiBook[]> {
-  const response = await fetch(`${API_BASE_URL}api/libros`);
-  if (!response.ok) throw new Error('Error al obtener libros');
-  return response.json();
+export interface ApiVerse {
+  number: number;
+  text: string;
 }
 
-// Obtener un libro por ID
-export async function getBook(bookId: string | number): Promise<ApiBook> {
-  const response = await fetch(`${API_BASE_URL}api/libros/${bookId}`);
-  if (!response.ok) throw new Error('Error al obtener libro');
-  return response.json();
+export interface ApiChapterSummary {
+  bookSlug: string;
+  bookName: string;
+  bookAbbrev: string;
+  testament: Testament;
+  chapter: number;
+  isPrologue: boolean;
+  verseCount: number;
+  sourceUrl: string | null;
 }
 
-// Obtener capítulos de un libro
-export async function getChapters(bookId: string | number): Promise<ApiChapter[]> {
-  const response = await fetch(`${API_BASE_URL}api/libros/${bookId}/capitulos`);
-  if (!response.ok) throw new Error('Error al obtener capítulos');
-  return response.json();
+export interface ApiChapter extends ApiChapterSummary {
+  verses: ApiVerse[];
 }
 
-// Obtener versículos de un capítulo por ID de capítulo
-export async function getVersesByChapterId(chapterId: number): Promise<ApiVerse[]> {
-  const response = await fetch(`${API_BASE_URL}api/capitulos/${chapterId}/versiculos`);
-  if (!response.ok) throw new Error('Error al obtener versículos');
-  return response.json();
+export interface ApiVerseRange {
+  bookSlug: string;
+  bookName: string;
+  bookAbbrev: string;
+  testament: Testament;
+  chapter: number;
+  reference: string;
+  verses: ApiVerse[];
 }
 
-// Mapeo de IDs de libros de nuestra app a IDs de la API
-// Este mapeo puede necesitar ajustarse según tu API
-export const bookIdMapping: Record<string, number> = {
-  // Antiguo Testamento
-  'genesis': 1,
-  'exodo': 2,
-  'levitico': 3,
-  'numeros': 4,
-  'deuteronomio': 5,
-  'josue': 6,
-  'jueces': 7,
-  'rut': 8,
-  '1samuel': 9,
-  '2samuel': 10,
-  '1reyes': 11,
-  '2reyes': 12,
-  '1cronicas': 13,
-  '2cronicas': 14,
-  'esdras': 15,
-  'nehemias': 16,
-  'tobias': 17,
-  'judit': 18,
-  'ester': 19,
-  '1macabeos': 20,
-  '2macabeos': 21,
-  'job': 22,
-  'salmos': 23,
-  'proverbios': 24,
-  'eclesiastes': 25,
-  'cantar': 26,
-  'sabiduria': 27,
-  'eclesiastico': 28,
-  'isaias': 29,
-  'jeremias': 30,
-  'lamentaciones': 31,
-  'baruc': 32,
-  'ezequiel': 33,
-  'daniel': 34,
-  'oseas': 35,
-  'joel': 36,
-  'amos': 37,
-  'abdias': 38,
-  'jonas': 39,
-  'miqueas': 40,
-  'nahum': 41,
-  'habacuc': 42,
-  'sofonias': 43,
-  'ageo': 44,
-  'zacarias': 45,
-  'malaquias': 46,
-  // Nuevo Testamento
-  'mateo': 47,
-  'marcos': 48,
-  'lucas': 49,
-  'juan': 50,
-  'hechos': 51,
-  'romanos': 52,
-  '1corintios': 53,
-  '2corintios': 54,
-  'galatas': 55,
-  'efesios': 56,
-  'filipenses': 57,
-  'colosenses': 58,
-  '1tesalonicenses': 59,
-  '2tesalonicenses': 60,
-  '1timoteo': 61,
-  '2timoteo': 62,
-  'tito': 63,
-  'filemon': 64,
-  'hebreos': 65,
-  'santiago': 66,
-  '1pedro': 67,
-  '2pedro': 68,
-  '1juan': 69,
-  '2juan': 70,
-  '3juan': 71,
-  'judas': 72,
-  'apocalipsis': 73,
-};
+export interface ApiSearchResult {
+  bookSlug: string;
+  bookName: string;
+  bookAbbrev: string;
+  testament: Testament;
+  chapter: number;
+  verse: number;
+  reference: string;
+  text: string;
+}
 
-// Función principal para obtener versículos por libro y capítulo
-export async function getVerses(bookId: string, chapterNumber: number): Promise<{ verse: number; text: string }[]> {
-  try {
-    // Obtener el ID numérico del libro
-    const apiBookId = bookIdMapping[bookId];
-    
-    if (!apiBookId) {
-      throw new Error(`Libro no encontrado: ${bookId}`);
-    }
+export interface ApiSearchMeta {
+  query: string;
+  mode: 'text' | 'contains';
+  total: number;
+  limit: number;
+  offset: number;
+}
 
-    // Obtener los capítulos del libro
-    const chapters = await getChapters(apiBookId);
-    
-    // Buscar el capítulo por número
-    const chapter = chapters.find(c => c.numero === chapterNumber);
-    
-    if (!chapter) {
-      throw new Error(`Capítulo ${chapterNumber} no encontrado`);
-    }
+export interface ApiStats {
+  version: string;
+  canon: string;
+  books: number;
+  chapters: number;
+  verses: number;
+  deuterocanonical: number;
+  testaments: { testament: Testament; books: number; chapters: number; verses: number }[];
+}
 
-    // Obtener los versículos del capítulo
-    const verses = await getVersesByChapterId(chapter.id);
+export class BibleApiError extends Error {
+  status: number;
 
-    // Normalizar el formato de los versículos
-    return verses.map(v => ({
-      verse: v.numero || v.verse || 0,
-      text: v.texto || v.text || '',
-    }));
-  } catch (error) {
-    console.error('Error al obtener versículos:', error);
-    throw error;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'BibleApiError';
+    this.status = status;
   }
 }
 
-// Búsqueda de texto
-export async function searchBible(query: string): Promise<ApiVerse[]> {
-  const response = await fetch(`${API_BASE_URL}api/buscar?q=${encodeURIComponent(query)}`);
-  if (!response.ok) throw new Error('Error en la búsqueda');
+type QueryParams = Record<string, string | number | boolean | undefined>;
+
+async function apiFetch<T>(path: string, params?: QueryParams): Promise<T> {
+  const url = new URL(`${API_BASE_URL}${path}`);
+
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) url.searchParams.set(key, String(value));
+    });
+  }
+
+  const response = await fetch(url.toString(), {
+    // Los textos bíblicos no cambian: se puede cachear de forma agresiva
+    next: { revalidate: 60 * 60 * 24 },
+  });
+
+  if (!response.ok) {
+    let message = `Error ${response.status} al consultar la API de la Biblia`;
+    try {
+      const body = await response.json();
+      if (body?.error?.message) message = body.error.message;
+    } catch {
+      // el cuerpo no era JSON, se usa el mensaje por defecto
+    }
+    throw new BibleApiError(message, response.status);
+  }
+
   return response.json();
+}
+
+// Listar los 73 libros del canon, opcionalmente filtrados por testamento
+export async function getBooks(testament?: Testament): Promise<ApiBook[]> {
+  const { data } = await apiFetch<{ data: ApiBook[] }>('/api/v1/books', { testament });
+  return data;
+}
+
+// Obtener un libro por slug, nombre o abreviatura
+export async function getBook(book: string): Promise<ApiBook> {
+  const { data } = await apiFetch<{ data: ApiBook }>(`/api/v1/books/${encodeURIComponent(book)}`);
+  return data;
+}
+
+// Listar los capítulos de un libro (sin el texto de los versículos)
+export async function getChapters(book: string): Promise<ApiChapterSummary[]> {
+  const { data } = await apiFetch<{ data: ApiChapterSummary[] }>(`/api/v1/books/${encodeURIComponent(book)}/chapters`);
+  return data;
+}
+
+// Obtener un capítulo completo con todos sus versículos
+export async function getChapter(book: string, chapter: number): Promise<ApiChapter> {
+  const { data } = await apiFetch<{ data: ApiChapter }>(
+    `/api/v1/books/${encodeURIComponent(book)}/chapters/${chapter}`
+  );
+  return data;
+}
+
+// Obtener un versículo (`3`) o un rango inclusivo (`3-7`, máximo 200 versículos)
+export async function getVerseRange(book: string, chapter: number, verse: string | number): Promise<ApiVerseRange> {
+  const { data } = await apiFetch<{ data: ApiVerseRange }>(
+    `/api/v1/books/${encodeURIComponent(book)}/chapters/${chapter}/verses/${verse}`
+  );
+  return data;
+}
+
+export interface SearchOptions {
+  mode?: 'text' | 'contains';
+  testament?: Testament;
+  book?: string;
+  limit?: number;
+  offset?: number;
+}
+
+// Búsqueda de texto completo en español (modo `text`) o por subcadena (modo `contains`)
+export async function searchBible(
+  query: string,
+  options: SearchOptions = {}
+): Promise<{ results: ApiSearchResult[]; meta: ApiSearchMeta }> {
+  const { data, meta } = await apiFetch<{ data: ApiSearchResult[]; meta: ApiSearchMeta }>('/api/v1/search', {
+    q: query,
+    ...options,
+  });
+  return { results: data, meta };
+}
+
+// Versículo al azar
+export async function getRandomVerse(): Promise<ApiSearchResult> {
+  const { data } = await apiFetch<{ data: ApiSearchResult }>('/api/v1/random');
+  return data;
+}
+
+// Versículo del día (selección determinista por fecha, formato YYYY-MM-DD)
+export async function getVerseOfTheDay(date?: string): Promise<{ date: string; verse: ApiSearchResult }> {
+  const { data } = await apiFetch<{ data: { date: string; verse: ApiSearchResult } }>('/api/v1/verse-of-the-day', {
+    date,
+  });
+  return data;
+}
+
+// Estadísticas globales del corpus
+export async function getStats(): Promise<ApiStats> {
+  const { data } = await apiFetch<{ data: ApiStats }>('/api/v1/stats');
+  return data;
 }

@@ -1,10 +1,8 @@
 // Configuración de la aplicación
-// Modifica estas variables para conectar con tu API de la Biblia
 
 export const config = {
-  // URL base de tu API de la Biblia
-  // Cambia esto a la URL de tu API real
-  apiBaseUrl: process.env.NEXT_PUBLIC_BIBLE_API_URL || '/api',
+  // URL base de la API Biblia Católica (https://apibiblia.vercel.app)
+  apiBaseUrl: process.env.NEXT_PUBLIC_BIBLE_API_URL || 'https://apibiblia.vercel.app',
   
   // Nombre de la aplicación
   appName: 'La Biblia',
@@ -16,7 +14,3 @@ export const config = {
   language: 'es',
 };
 
-// Función helper para construir URLs de la API
-export function getBibleApiUrl(bookId: string, chapter: number): string {
-  return `${config.apiBaseUrl}/bible/${bookId}/${chapter}`;
-}

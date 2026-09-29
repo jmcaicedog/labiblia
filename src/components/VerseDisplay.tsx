@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { Book } from '@/data/bible';
+import { Book, getChapterRange } from '@/data/bible';
 import VerseShareModal from './VerseShareModal';
 
 interface Verse {
@@ -238,6 +238,7 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
 
   const isOld = book.testament === 'old';
   const accentText = isOld ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
+  const { first: firstChapter, last: lastChapter } = getChapterRange(book);
 
   if (loading) {
     return (
@@ -360,7 +361,7 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
 
       {/* Navegación entre capítulos */}
       <div className="flex justify-between items-center pt-6 mt-6 border-t border-[var(--border)]">
-        {chapter > 1 ? (
+        {chapter > firstChapter ? (
           <Link
             href={`/libro/${book.id}/${chapter - 1}`}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--background-card)]
@@ -375,7 +376,7 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
           <div />
         )}
         
-        {chapter < book.chapters ? (
+        {chapter < lastChapter ? (
           <Link
             href={`/libro/${book.id}/${chapter + 1}`}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--background-card)]
