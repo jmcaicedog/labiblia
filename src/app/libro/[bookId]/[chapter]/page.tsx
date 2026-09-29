@@ -2,29 +2,20 @@ import { notFound } from 'next/navigation';
 import Header from '@/components/Header';
 import VerseDisplay from '@/components/VerseDisplay';
 import QuickNav from '@/components/QuickNav';
-import { getBookById, allBooks, getChapterRange } from '@/data/bible';
+import { getBookById, getChapterRange } from '@/data/bible';
+import { BibleApiError, getChapter } from '@/lib/bibleApi';
+
+export const revalidate = 86400;
+
+export function generateStaticParams() {
+  return [];
+}
 
 interface ChapterPageProps {
   params: Promise<{
     bookId: string;
     chapter: string;
   }>;
-}
-
-export async function generateStaticParams() {
-  const paths: { bookId: string; chapter: string }[] = [];
-  
-  allBooks.forEach(book => {
-    const { first, last } = getChapterRange(book);
-    for (let i = first; i <= last; i++) {
-      paths.push({
-        bookId: book.id,
-        chapter: i.toString(),
-      });
-    }
-  });
-  
-  return paths;
 }
 
 export async function generateMetadata({ params }: ChapterPageProps) {
@@ -67,6 +58,17 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
     notFound();
   }
 
+  let verses: { verse: number; text: string }[] | null = null;
+
+  try {
+    const chapterData = await getChapter(book.id, chapterNum);
+    verses = chapterData.verses.map(({ number, text }) => ({ verse: number, text }));
+  } catch (error) {
+    if (error instanceof BibleApiError && error.status === 404) {
+      notFound();
+    }
+  }
+
   const isOld = book.testament === 'old';
   const badgeBg = isOld 
     ? 'bg-amber-200 dark:bg-amber-800' 
@@ -102,7 +104,12 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
         {/* Verses */}
         <div className="bg-[var(--background-card)] rounded-2xl p-4 sm:p-6 border border-[var(--border)]
                         shadow-sm animate-fade-in" style={{ animationDelay: '100ms' }}>
-          <VerseDisplay book={book} chapter={chapterNum} />
+          <VerseDisplay
+            key={`${book.id}-${chapterNum}`}
+            book={book}
+            chapter={chapterNum}
+            initialVerses={verses}
+          />
         </div>
       </main>
 

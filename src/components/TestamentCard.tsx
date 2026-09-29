@@ -75,8 +75,7 @@ export default function TestamentCard({ id, name, books }: TestamentCardProps) {
       </button>
 
       {/* Lista de libros por categoría */}
-      <div className={`overflow-hidden transition-all duration-500 ease-out
-                      ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+      {isExpanded && (
         <div className="px-5 pb-5 space-y-3">
           {booksByCategory.map(({ category, books: categoryBooks }) => (
             <div key={category} className="border border-[var(--border)] rounded-xl overflow-hidden">
@@ -100,8 +99,7 @@ export default function TestamentCard({ id, name, books }: TestamentCardProps) {
                 </div>
               </button>
               
-              <div className={`transition-all duration-300 ease-out
-                              ${expandedCategory === category ? 'max-h-[1000px]' : 'max-h-0'} overflow-hidden`}>
+              {expandedCategory === category && (
                 <div className="p-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {categoryBooks.map((book, index) => (
                     <Link
@@ -129,11 +127,11 @@ export default function TestamentCard({ id, name, books }: TestamentCardProps) {
                     </Link>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
           ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }

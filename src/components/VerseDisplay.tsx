@@ -1,18 +1,23 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Book, getChapterRange } from '@/data/bible';
-import VerseShareModal from './VerseShareModal';
+
+const VerseShareModal = dynamic(() => import('./VerseShareModal'), { ssr: false });
 
 interface Verse {
   verse: number;
   text: string;
 }
 
+const EMPTY_VERSES: Verse[] = [];
+
 interface VerseDisplayProps {
   book: Book;
   chapter: number;
+  initialVerses: Verse[] | null;
 }
 
 interface VerseRange {
@@ -46,9 +51,10 @@ function formatVerseRange(range: VerseRange): string {
   return range.start === range.end ? String(range.start) : `${range.start}-${range.end}`;
 }
 
-export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
-  const [verses, setVerses] = useState<Verse[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function VerseDisplay({ book, chapter, initialVerses }: VerseDisplayProps) {
+  const [fallbackVerses, setFallbackVerses] = useState<Verse[] | null>(null);
+  const verses = initialVerses ?? fallbackVerses ?? EMPTY_VERSES;
+  const loading = initialVerses === null && fallbackVerses === null;
   const [error, setError] = useState<string | null>(null);
   const [anchorVerse, setAnchorVerse] = useState<number | null>(null);
   const [selectedParam, setSelectedParam] = useState<string | null>(null);
@@ -104,31 +110,27 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
   };
 
   useEffect(() => {
+    if (initialVerses !== null) return;
+
+    const controller = new AbortController();
+
     const fetchVerses = async () => {
-      setLoading(true);
-      setError(null);
-      
       try {
-        // Usar proxy local para evitar CORS
-        const response = await fetch(`/api/proxy/${book.id}/${chapter}`);
-        
-        if (!response.ok) {
-          throw new Error('Error al cargar versículos');
-        }
-        
+        const response = await fetch(`/api/proxy/${book.id}/${chapter}`, { signal: controller.signal });
+        if (!response.ok) throw new Error('Error al cargar versículos');
         const data = await response.json();
-        setVerses(data.verses || []);
-      } catch (err) {
-        console.error('Error fetching verses:', err);
+        setFallbackVerses(data.verses || []);
+      } catch (fetchError) {
+        if (controller.signal.aborted) return;
+        console.error('Error fetching verses:', fetchError);
         setError('No se pudieron cargar los versículos. Verifica la conexión con la API.');
-        setVerses([]);
-      } finally {
-        setLoading(false);
+        setFallbackVerses([]);
       }
     };
 
     fetchVerses();
-  }, [book.id, chapter]);
+    return () => controller.abort();
+  }, [book.id, chapter, initialVerses]);
 
   useEffect(() => {
     setAnchorVerse(selectedRange?.start ?? null);
@@ -242,15 +244,9 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <div key={i} className="animate-pulse flex gap-3">
-            <div className="w-8 h-6 bg-[var(--border)] rounded" />
-            <div className="flex-1 space-y-2">
-              <div className="h-4 bg-[var(--border)] rounded w-full" />
-              <div className="h-4 bg-[var(--border)] rounded w-3/4" />
-            </div>
-          </div>
+      <div className="space-y-3" aria-label="Cargando versículos">
+        {[0, 1, 2].map((line) => (
+          <div key={line} className="h-5 animate-pulse rounded bg-[var(--border)]" />
         ))}
       </div>
     );
@@ -392,13 +388,15 @@ export default function VerseDisplay({ book, chapter }: VerseDisplayProps) {
         )}
       </div>
 
-      <VerseShareModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        reference={selectedReference}
-        quoteText={selectedQuoteText}
-        shareUrl={shareUrl}
-      />
+      {isShareModalOpen && (
+        <VerseShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          reference={selectedReference}
+          quoteText={selectedQuoteText}
+          shareUrl={shareUrl}
+        />
+      )}
     </div>
   );
 }
